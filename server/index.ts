@@ -1,7 +1,7 @@
 import expressWs from 'express-ws';
 import express from 'express';
 import cors from 'cors';
-import { ActiveConnections, IncomingMessage, Pixels } from './types';
+import { ActiveConnections, IncomingPixel, Pixel } from './types';
 
 const app = express();
 
@@ -14,29 +14,28 @@ const router = express.Router();
 
 const activeConnections: ActiveConnections = {};
 
-const history: Pixels[] = [];
+const history: Pixel[] = [];
 router.ws('/canvas', (ws, _req) => {
   const id = crypto.randomUUID();
   console.log('Client connected id= ', id);
 
   activeConnections[id] = ws;
 
+  ws.send(JSON.stringify({ type: 'DRAW_HISTORY', payload: history }));
   ws.send(JSON.stringify({ type: 'WELCOME', payload: 'You are connected' }));
 
   ws.on('message', (message) => {
     console.log(message.toString());
 
-    const parsedPixels = JSON.parse(message.toString()) as IncomingMessage;
+    const parsedPixels = JSON.parse(message.toString()) as IncomingPixel;
 
     history.push(parsedPixels.payload);
 
-    if (parsedPixels.type === 'DRAW_PIXELS') {
+    if (parsedPixels.type === 'NEW_PIXELS') {
       Object.values(activeConnections).forEach((connection) => {
         const outgoing = {
-          type: 'NEW_PIXELS',
-          payload: {
-            message: history,
-          },
+          type: 'DRAW_PIXELS',
+          payload: parsedPixels.payload,
         };
         connection.send(JSON.stringify(outgoing));
       });

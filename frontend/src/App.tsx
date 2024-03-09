@@ -1,9 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { IncomingPixels, Pixel } from './types';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { IncomingMessage, Pixel } from './types';
 
 function App() {
   const [pixels, setPixels] = useState<Pixel[]>([]);
-  const [newPixels, setNewPixels] = useState<Pixel | null>(null);
+  const [newPixels, setNewPixels] = useState<Pixel>({
+    x: 0,
+    y: 0,
+  });
   const [isDrawing, setIsDrawing] = useState(false);
 
   const ws = useRef<WebSocket | null>(null);
@@ -16,10 +19,18 @@ function App() {
     ws.current.addEventListener('close', () => console.log('ws closed'));
 
     ws.current.addEventListener('message', (event) => {
-      const decodedMessage = JSON.parse(event.data) as IncomingPixels;
+      const decodedDraw = JSON.parse(event.data) as IncomingMessage;
 
-      if (decodedMessage.type === 'DRAW_PIXELS') {
-        setPixels(decodedMessage.payload);
+      if (decodedDraw.type === 'DRAW_HISTORY') {
+        setPixels((prevPixels) => [...prevPixels, ...decodedDraw.payload]);
+      }
+
+      if (decodedDraw.type === 'DRAW_PIXELS') {
+        setPixels((prevState) => [...prevState, decodedDraw.payload]);
+      }
+
+      if (decodedDraw.type === 'WELCOME') {
+        console.log(decodedDraw.payload);
       }
     });
 
@@ -33,7 +44,6 @@ function App() {
     context.lineWidth = 2;
     contextRef.current = context;
 
-    void drawOnStartup();
     return () => {
       if (ws.current) {
         ws.current.close();
@@ -41,18 +51,7 @@ function App() {
     };
   }, []);
 
-  const drawOnStartup = () => {
-    if (!contextRef.current || !canvasRef.current) return;
-    const context = contextRef.current;
-    pixels.forEach((pixel) => {
-      if (context) {
-        context.fillStyle = pixel.color;
-        context.fillRect(pixel.x, pixel.y, 1, 1);
-      }
-    });
-  };
-
-  const sendMessage = () => {
+  const sendDrawing = () => {
     if (!ws.current) return;
 
     ws.current.send(
@@ -90,9 +89,24 @@ function App() {
 
     contextRef.current.lineTo(offsetX, offsetY);
     contextRef.current.stroke();
-    setNewPixels({ x: offsetX, y: offsetY, color: 'black' });
-    sendMessage();
+    setNewPixels({ x: offsetX, y: offsetY });
+    sendDrawing();
   };
+
+  const drawOnStartup = useCallback(() => {
+    if (!contextRef.current || !canvasRef.current) return;
+
+    const context = contextRef.current;
+    context.beginPath();
+    pixels.forEach((pixel) => {
+      context?.fillRect(pixel.x, pixel.y, 1, 1);
+    });
+    // context.stroke();
+  }, [pixels]);
+
+  useEffect(() => {
+    void drawOnStartup();
+  }, [drawOnStartup]);
 
   return (
     <div

@@ -1,10 +1,24 @@
 export interface Pixel {
   x: number;
   y: number;
-  color: 'black';
+}
+
+export interface IncomingHistory {
+  type: 'DRAW_PIXELS';
+  payload: Pixel;
 }
 
 export interface IncomingPixels {
-  type: 'DRAW_PIXELS';
+  type: 'DRAW_HISTORY';
   payload: Pixel[];
 }
+
+export interface IncomingWelcomeMessage {
+  type: 'WELCOME';
+  payload: string;
+}
+
+export type IncomingMessage =
+  | IncomingPixels
+  | IncomingWelcomeMessage
+  | IncomingHistory;

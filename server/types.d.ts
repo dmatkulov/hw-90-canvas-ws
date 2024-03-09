@@ -4,13 +4,12 @@ export interface ActiveConnections {
   [id: string]: WebSocket;
 }
 
-export interface Pixels {
+export interface Pixel {
   x: number;
   y: number;
-  color: string;
 }
 
-export interface IncomingMessage {
+export interface IncomingPixel {
   type: string;
-  payload: Pixels;
+  payload: Pixel;
 }
