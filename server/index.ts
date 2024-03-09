@@ -22,7 +22,6 @@ router.ws('/canvas', (ws, _req) => {
   activeConnections[id] = ws;
 
   ws.send(JSON.stringify({ type: 'DRAW_HISTORY', payload: history }));
-  ws.send(JSON.stringify({ type: 'WELCOME', payload: 'You are connected' }));
 
   ws.on('message', (message) => {
     console.log(message.toString());

@@ -13,12 +13,4 @@ export interface IncomingPixels {
   payload: Pixel[];
 }
 
-export interface IncomingWelcomeMessage {
-  type: 'WELCOME';
-  payload: string;
-}
-
-export type IncomingMessage =
-  | IncomingPixels
-  | IncomingWelcomeMessage
-  | IncomingHistory;
+export type IncomingMessage = IncomingPixels | IncomingHistory;

@@ -28,10 +28,6 @@ function App() {
       if (decodedDraw.type === 'DRAW_PIXELS') {
         setPixels((prevState) => [...prevState, decodedDraw.payload]);
       }
-
-      if (decodedDraw.type === 'WELCOME') {
-        console.log(decodedDraw.payload);
-      }
     });
 
     const canvas = canvasRef.current;
