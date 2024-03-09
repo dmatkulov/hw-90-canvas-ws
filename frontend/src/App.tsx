@@ -3,10 +3,7 @@ import { IncomingMessage, Pixel } from './types';
 
 function App() {
   const [pixels, setPixels] = useState<Pixel[]>([]);
-  const [newPixels, setNewPixels] = useState<Pixel>({
-    x: 0,
-    y: 0,
-  });
+  const [newPixels, setNewPixels] = useState<Pixel | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
 
   const ws = useRef<WebSocket | null>(null);
@@ -56,33 +53,34 @@ function App() {
     );
   };
 
-  const startDrawing = ({
-    nativeEvent,
-  }: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!contextRef.current || !canvasRef.current) return;
-    const { offsetX, offsetY } = nativeEvent;
+  const startDrawing = () => {
+    if (!contextRef.current) return;
 
     contextRef.current.beginPath();
-    contextRef.current.moveTo(offsetX, offsetY);
     setIsDrawing(true);
   };
 
   const finishDrawing = () => {
     if (!contextRef.current) return;
 
-    contextRef.current.closePath();
     setIsDrawing(false);
-
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    contextRef.current.beginPath();
   };
 
   const draw = ({ nativeEvent }: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || !contextRef.current || !canvasRef.current) return;
+    if (!isDrawing || !contextRef.current) return;
+
     const { offsetX, offsetY } = nativeEvent;
 
-    contextRef.current.lineTo(offsetX, offsetY);
-    contextRef.current.stroke();
+    const context = contextRef.current;
+
+    if (!context) return;
+
+    context.lineWidth = 1;
+    context.beginPath();
+    context.lineTo(offsetX, offsetY);
+    context.stroke();
+    context.moveTo(offsetX, offsetY);
     setNewPixels({ x: offsetX, y: offsetY });
     sendDrawing();
   };
@@ -94,8 +92,10 @@ function App() {
     context.beginPath();
 
     pixels.forEach((pixel) => {
-      if (context) {
-        context.fillRect(pixel.x, pixel.y, 2, 2);
+      if (pixel) {
+        if (context) {
+          context.lineTo(pixel.x, pixel.y);
+        }
       }
     });
     context.stroke();
