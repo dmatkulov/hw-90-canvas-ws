@@ -30,25 +30,19 @@ router.ws('/canvas', (ws, _req) => {
 
     history.push(parsedPixels.payload);
 
-    //   if (parsedPixels.type === 'DRAW_PIXELS') {
-    //     Object.values(activeConnections).forEach((connection) => {
-    //       const outgoing = {
-    //         type: 'NEW_PIXELS',
-    //         payload: {
-    //           message: history,
-    //         },
-    //       };
-    //       connection.send(JSON.stringify(outgoing));
-    //     });
-    //   }
-    // });
-
     if (parsedPixels.type === 'DRAW_PIXELS') {
       Object.values(activeConnections).forEach((connection) => {
-        connection.send(JSON.stringify(history));
+        const outgoing = {
+          type: 'NEW_PIXELS',
+          payload: {
+            message: history,
+          },
+        };
+        connection.send(JSON.stringify(outgoing));
       });
     }
   });
+
   ws.on('close', () => {
     console.log('Client disconnected, ', id);
 
