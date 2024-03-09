@@ -40,8 +40,6 @@ function App() {
     const context = canvas.getContext('2d');
     if (!context) return;
 
-    context.strokeStyle = 'black';
-    context.lineWidth = 2;
     contextRef.current = context;
 
     return () => {
@@ -68,16 +66,16 @@ function App() {
     if (!contextRef.current || !canvasRef.current) return;
     const { offsetX, offsetY } = nativeEvent;
 
-    setIsDrawing(true);
     contextRef.current.beginPath();
     contextRef.current.moveTo(offsetX, offsetY);
+    setIsDrawing(true);
   };
 
   const finishDrawing = () => {
     if (!contextRef.current) return;
 
-    setIsDrawing(false);
     contextRef.current.closePath();
+    setIsDrawing(false);
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -98,10 +96,13 @@ function App() {
 
     const context = contextRef.current;
     context.beginPath();
+
     pixels.forEach((pixel) => {
-      context?.fillRect(pixel.x, pixel.y, 1, 1);
+      if (context) {
+        context.fillRect(pixel.x, pixel.y, 2, 2);
+      }
     });
-    // context.stroke();
+    context.stroke();
   }, [pixels]);
 
   useEffect(() => {
