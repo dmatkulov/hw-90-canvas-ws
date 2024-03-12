@@ -24,13 +24,10 @@ router.ws('/canvas', (ws, _req) => {
   ws.send(JSON.stringify({ type: 'DRAW_HISTORY', payload: history }));
 
   ws.on('message', (message) => {
-    console.log(message.toString());
-
     const parsedPixels = JSON.parse(message.toString()) as IncomingPixel;
 
-    history.push(parsedPixels.payload);
-
     if (parsedPixels.type === 'NEW_PIXELS') {
+      history.push(parsedPixels.payload);
       Object.values(activeConnections).forEach((connection) => {
         const outgoing = {
           type: 'DRAW_PIXELS',
